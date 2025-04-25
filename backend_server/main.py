@@ -1,12 +1,25 @@
+from contextlib import asynccontextmanager
 import uvicorn
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-
+from handlers.websocket_handler import handle_socket
+from typing import Dict
 
 # Store active WebSocket connections
-active_connections = {}
 
-app = FastAPI()
+connections: Dict[WebSocket, dict] = {}
+active_connections: Dict[str, WebSocket] = {}
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+
+    app.state.connections = {} 
+    app.state.active_connections = {}
+
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,23 +38,7 @@ async def root():
 async def websocket_endpoint(websocket: WebSocket, client_id: str):
     # Accept the WebSocket connection
     await websocket.accept()
-    
-    # Add the WebSocket connection to the active connections dictionary
-    active_connections[client_id] = websocket
-    print(f"Client {client_id} connected.")
-    
-    try:
-        while True:
-            # Wait for a message from the client
-            message = await websocket.receive_text()
-            print(f"Message from {client_id}: {message}")
-            
-            # Send a response back to the client
-            await websocket.send_text(f"{message}")
-    
-    except WebSocketDisconnect:
-        print(f"Client {client_id} disconnected.")
-        del active_connections[client_id]  # Remove the WebSocket connection from the active connections
+    await handle_socket(websocket, client_id)
 
 
 def start():

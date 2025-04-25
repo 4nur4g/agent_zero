@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
+import dayjs from "dayjs"
 
 interface Message {
   role: "agent" | "user"
@@ -33,7 +34,8 @@ export default function ChatInterface() {
   ])
 
   const [input, setInput] = useState('');
-  
+  const [streamedContent, setStreamedContent] = useState('');
+
   const socketRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef(null);
 
@@ -41,43 +43,45 @@ export default function ChatInterface() {
   useEffect(() => {
     // Create WebSocket connection
     socketRef.current = new WebSocket('ws://localhost:3006/ws/1');
-    
+
     // Connection opened
     socketRef.current.addEventListener('open', (event: any) => {
-      // setConnected(true);
-      // setStatus('Connected');
       console.log('Connected to WebSocket server');
     });
 
     // Listen for messages
     socketRef.current.addEventListener('message', (event: any) => {
       try {
-        console.log('Message received:', event.data);
-        const data = JSON.parse(event.data);
-        setMessages(prevMessages => [
-        ...prevMessages,
-        {
-          role: "agent",
-          content: data.message,
-          timestamp: new Date().toISOString(),
+        const json = JSON.parse(event.data);
+      
+        if (json.isStreaming) {
+          // Token-by-token streaming update
+          setStreamedContent(prev => prev + json.content);
+        } else {
+          // Stream end, finalize the message
+          console.log(' stream content end --> ', json)
+          setMessages(prev => [
+            ...prev,
+            {
+              role: json.role,
+              content: json.content,
+              timestamp: json.timestamp || dayjs().format('YYYY-MM-DD HH:mm:ss')
+            }
+          ]);
+          setStreamedContent(""); // Reset for next stream
         }
-      ]);
       } catch (error) {
-        console.error('Error parsing message:', error);
+        console.error("Invalid JSON stream message:", event.data);
       }
     });
 
     // Connection closed
     socketRef.current.addEventListener('close', (event) => {
-      // setConnected(false);
-      // setStatus('Disconnected');
       console.log('Disconnected from WebSocket server');
     });
 
     // Connection error
     socketRef.current.addEventListener('error', () => {
-      // setConnected(false);
-      // setStatus('Connection Error');
       console.log('WebSocket connection error - server might not be running');
     });
 
@@ -97,21 +101,21 @@ export default function ChatInterface() {
   // Send a message
   const sendMessage = () => {
     if (!input.trim()) return;
-    
+
     const newMessage = {
       role: "user",
       content: input,
       timestamp: new Date().toISOString(),
     };
-    
+
     // Add message to state
     setMessages(prevMessages => [...prevMessages, newMessage]);
-    
+
     // Send to server
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       socketRef.current.send(JSON.stringify({ message: input }));
     }
-    
+
     // Clear input
     setInput('');
   };
@@ -141,6 +145,21 @@ export default function ChatInterface() {
               </div>
             </div>
           ))}
+
+          {/* Streamed message (live response) */}
+          {streamedContent && (
+            <div className="flex gap-2 max-w-[80%]">
+              <div className="h-8 w-8 rounded-full bg-primary flex-shrink-0" />
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">GenerativeAgent</span>
+                </div>
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm whitespace-pre-wrap">{streamedContent}</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </ScrollArea>
       <div className="p-4 border-t">
@@ -151,12 +170,7 @@ export default function ChatInterface() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               className="min-h-[44px] max-h-32 pl-10"
-              onKeyDown={(e) => {
-                // e.preventDefault();
-                if(e.key === 'Enter') {
-                  sendMessage();
-                }
-              }}
+              onKeyDown={handleKeyPress}
             />
           </div>
           <Button className="px-8" onClick={sendMessage} >Send</Button>
