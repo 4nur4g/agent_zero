@@ -12,7 +12,7 @@ class AgentFactory:
     you do it here without touching execution logic.
     """
 
-    def __init__(self, llm, sensitive_data, browser, browser_context, save_path: str, controller, use_vision=False):
+    def __init__(self, llm, sensitive_data, browser, browser_context, save_path: str, controller, use_vision=False, planner_llm=None):
         self.llm = llm
         self.sensitive_data = sensitive_data
         self.browser = browser
@@ -20,6 +20,7 @@ class AgentFactory:
         self.save_path = save_path
         self.controller = controller
         self.use_vision = use_vision
+        self.planner_llm = planner_llm
 
     def create(self, task) -> "Agent":
         task_str = "\n".join(task.get("subtasks", []))
@@ -35,6 +36,9 @@ class AgentFactory:
             "message_context": message_ctx,
             "controller": self.controller,
             "use_vision": self.use_vision,
+            "planner_llm": self.planner_llm if self.planner_llm else self.llm,  # Separate model for planning
+            "use_vision_for_planner": True,
+            "planner_interval": 4,
         }
 
         # collect everything else (including a possible "use_vision" override)
