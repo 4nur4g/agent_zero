@@ -9,7 +9,7 @@ wheels/
 logs
 # Virtual environments
 .venv
-.env
+backend_server/.env
 screenshots
 .DS_Store
 uv.lock

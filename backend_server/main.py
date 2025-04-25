@@ -3,8 +3,8 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from handlers.websocket_handler import handle_socket
 from typing import Dict
+from backend_server.handlers.websocket_handler import handle_socket
 
 # Store active WebSocket connections
 
@@ -33,7 +33,7 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    return {"message": "Hello, Worgergrrld!"}
+    return {"message": "Hello, World!"}
 
 # WebSocket endpoint to handle connections
 @app.websocket("/ws/{client_id}")

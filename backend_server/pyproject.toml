@@ -7,6 +7,11 @@ requires-python = ">=3.12"
 dependencies = [
     "agent-zero",
     "fastapi[standard]>=0.115.12",
+    "langchain>=0.3.22",
+    "langchain-core>=0.3.49",
+    "langchain-openai>=0.3.11",
+    "langgraph>=0.3.34",
+    "pydantic-settings>=2.9.1",
     "pyodbc>=5.2.0",
     "python-tds>=1.16.1",
     "sqlalchemy-pytds>=1.0.2",
