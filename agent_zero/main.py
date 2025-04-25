@@ -31,6 +31,7 @@ browser = Browser(
 
 
 async def start_agent_zero(socket: WebSocket = None, queue: asyncio.Queue = None):
+    print('Starting agent_zero')
     async with await browser.new_context() as context:
         controller = get_controller(socket, queue)
 

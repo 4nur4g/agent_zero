@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import os
 
@@ -5,8 +6,9 @@ from browser_use.agent.views import ActionResult
 from browser_use.browser.context import BrowserContext
 from browser_use.controller.service import Controller
 
+from fastapi import WebSocket
 
-def get_controller(socket=None, queue=None) -> Controller:
+def get_controller(socket: WebSocket = None, queue: asyncio.Queue = None) -> Controller:
     """
     Construct a Controller whose `ask_human` action will:
     1) send a prompt (and screenshot) over `socket`
@@ -30,13 +32,13 @@ def get_controller(socket=None, queue=None) -> Controller:
             try:
                 # a) send the prompt (and screenshot) to the front-end
                 await socket.send_json({
-                    "type": "prompt",
-                    "prompt": question,
-                    "screenshot": screenshot_b64,
+                    "type": "agent_zero_message",
+                    "message": {"question": question, "screenshot": screenshot_b64},
                 })
                 # b) wait here until the front-end does:
                 #    socket.send(JSON.stringify({ type:"response", text:"<their answer>" }))
                 answer = await queue.get()
+                print("Received answer: " + answer)
             except Exception as e:
                 print(f"Error sending prompt: {e}")
                 answer = input(f"\n{question}\nInput: ")

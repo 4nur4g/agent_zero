@@ -1,8 +1,9 @@
 from fastapi import WebSocket, WebSocketDisconnect
 import asyncio
 import json
-from backend_server.langgraph.ai import chat
-# from datetime import datetime
+# from backend_server.langgraph.ai import chat
+from datetime import datetime
+from agent_zero.main import start_agent_zero
 
 async def handle_socket(websocket: WebSocket, client_id: str, queue: asyncio.Queue):
     connections = websocket.app.state.connections
@@ -12,17 +13,24 @@ async def handle_socket(websocket: WebSocket, client_id: str, queue: asyncio.Que
     websocket.app.state.response_queues[client_id] = queue
 
     print(f"Client {client_id} connected.")
+
+    # TODO: Evoke it conditionally, i.e. when agent_zero is required
+    # asyncio.create_task(start_agent_zero(socket=websocket, queue=queue))
     
     try:
         while True:
             # Wait for a message from the client
             message = await websocket.receive_text()
+
             data = json.loads(message)
             text = data.get("message", "")
             print(f"Message from {client_id}: {text}")
-            
+
+            # TODO: To send response of user to agent_zero
+            # asyncio.create_task(websocket.app.state.response_queues[client_id].put("Hello Robot, I am doing well"))
+
             async for chunk in process_message(text):
-                await websocket.send_text(cgvhunk)
+                await websocket.send_text(chunk)
                 await asyncio.sleep(0.05)  # simulate delay for streaming
     
     except WebSocketDisconnect:
@@ -41,7 +49,7 @@ async def process_message(message: str):
             "isStreaming": True
         }
         yield json.dumps(chunk)
-        await asyncio.sleep(0.01)  # Simulate delay
+        await asyncio.sleep(0.001)  # Simulate delay
 
     # Final signal to indicate end of stream
     end_signal = {
