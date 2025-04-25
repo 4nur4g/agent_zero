@@ -3,11 +3,12 @@ import asyncio
 import json
 from datetime import datetime
 
-async def handle_socket(websocket: WebSocket, client_id: str): 
+async def handle_socket(websocket: WebSocket, client_id: str, queue: asyncio.Queue):
     connections = websocket.app.state.connections
     connections[websocket] = {"client_id": client_id}
     active_connections = websocket.app.state.active_connections
     active_connections[client_id] = websocket
+    websocket.app.state.response_queues[client_id] = queue
 
     print(f"Client {client_id} connected.")
     
@@ -20,7 +21,7 @@ async def handle_socket(websocket: WebSocket, client_id: str):
             print(f"Message from {client_id}: {text}")
             
             async for chunk in process_message(text):
-                await websocket.send_text(chunk)
+                await websocket.send_text(cgvhunk)
                 await asyncio.sleep(0.05)  # simulate delay for streaming
     
     except WebSocketDisconnect:

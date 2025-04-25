@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI, WebSocket
@@ -15,6 +16,7 @@ async def lifespan(app: FastAPI):
 
     app.state.connections = {} 
     app.state.active_connections = {}
+    app.state.response_queues = {}
 
     yield
 
@@ -36,9 +38,10 @@ async def root():
 # WebSocket endpoint to handle connections
 @app.websocket("/ws/{client_id}")
 async def websocket_endpoint(websocket: WebSocket, client_id: str):
+    queue = asyncio.Queue()
     # Accept the WebSocket connection
     await websocket.accept()
-    await handle_socket(websocket, client_id)
+    await handle_socket(websocket, client_id, queue)
 
 
 def start():
