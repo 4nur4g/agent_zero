@@ -23,7 +23,6 @@ async def handle_socket(websocket: WebSocket, client_id: str, queue: asyncio.Que
 
             data = json.loads(message)
             text = data.get("message", "")
-            print(f"Message from {client_id}: {text}")
             event_generator = await chat(websocket, text)
 
             # Iterating through the event_generator and sending each chunk over WebSocket
