@@ -40,7 +40,7 @@ export default function ChatInterface() {
   // Connect to WebSocket server
   useEffect(() => {
     // Create WebSocket connection
-    socketRef.current = new WebSocket('ws://localhost:3001');
+    socketRef.current = new WebSocket('ws://localhost:3006/ws/1');
     
     // Connection opened
     socketRef.current.addEventListener('open', (event: any) => {
@@ -52,6 +52,7 @@ export default function ChatInterface() {
     // Listen for messages
     socketRef.current.addEventListener('message', (event: any) => {
       try {
+        console.log('Message received:', event.data);
         const data = JSON.parse(event.data);
         setMessages(prevMessages => [
         ...prevMessages,
