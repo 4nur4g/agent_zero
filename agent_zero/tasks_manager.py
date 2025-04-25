@@ -47,7 +47,9 @@ class AgentFactory:
         all_kwargs = base_kwargs.copy()
         all_kwargs.update(extra_kwargs)
 
-        return Agent(**all_kwargs)
+        final_agent = Agent(**all_kwargs)
+
+        return final_agent
 
 
 class TaskManager:

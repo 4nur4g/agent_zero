@@ -115,7 +115,7 @@ from datetime import datetime
 record = InsuranceQuoteRequest(
     Id=21511,
     PB_ticket_id=74100,
-    Registration_Number="HR26DC8954",
+    Registration_Number="GJ15CG1761",
     Vehicle_Class="Private car",
     Vehicle_Sub_Class="Motor Car(LMV)",
     Address="C/1601 UNIQUE AURUM CHS LTD CHANDAN SHANTI ROAD SHIKHA MART POONAM GARDEN MIRA BHAYANDER Thane Maharashtra 401107",
