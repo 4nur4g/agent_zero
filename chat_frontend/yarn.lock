@@ -2388,6 +2388,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dayjs@npm:^1.11.13":
+  version: 1.11.13
+  resolution: "dayjs@npm:1.11.13"
+  checksum: f388db88a6aa93956c1f6121644e783391c7b738b73dbc54485578736565c8931bdfba4bb94e9b1535c6e509c97d5deb918bbe1ae6b34358d994de735055cca9
+  languageName: node
+  linkType: hard
+
 "debug@npm:4, debug@npm:^4.3.4":
   version: 4.4.0
   resolution: "debug@npm:4.4.0"
@@ -3104,6 +3111,7 @@ __metadata:
     clsx: ^2.1.1
     cmdk: 1.0.4
     date-fns: 4.1.0
+    dayjs: ^1.11.13
     embla-carousel-react: 8.5.1
     input-otp: 1.4.1
     lucide-react: ^0.454.0
