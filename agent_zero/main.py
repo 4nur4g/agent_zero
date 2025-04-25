@@ -27,20 +27,25 @@ browser = Browser(
             keep_alive=True,
             disable_security=False,
         ),
+        browser_binary_path="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
     )
 )
 
 controller = Controller(exclude_actions=['search_google'])
 
+
 @controller.action('Ask user for information')
 async def ask_human(question: str, browser: BrowserContext) -> ActionResult:
     screenshot_b64 = await browser.take_screenshot()
-    print(f"📷 Screenshot: {screenshot_b64}")
     os.makedirs("screenshots", exist_ok=True)
-    with open("screenshots/my_capture.png", "wb") as f:
-        f.write(base64.b64decode(screenshot_b64))
-    answer = input(f'\n{question}\nInput: ')
+    if "unsupported" in question:
+        answer = "Please retry"
+    else:
+        with open("screenshots/my_capture.png", "wb") as f:
+            f.write(base64.b64decode(screenshot_b64))
+        answer = input(f'\n{question}\nInput: ')
     return ActionResult(extracted_content=answer)
+
 
 async def main():
     async with await browser.new_context() as context:

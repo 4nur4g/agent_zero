@@ -6,22 +6,27 @@ tomorrow = date.today() + timedelta(days=1)
 
 atomic_tasks = [
     {
-        "title": "Log into FG General Partner Portal to access the policy interface",
-        "subtasks": [
-            "Open a web browser and go to https://partners.fggeneral.in/nonlifeadvisor.",
-            f"Enter the username using `fgg_user_name` in the appropriate input field.",
-            f"Enter the password using `fgg_password` in the password field.",
-            "Click the login button to authenticate.",
-            "Wait for the portal dashboard or landing page to fully load before proceeding."
-        ]
+        # "title": "Log into FG General Partner Portal to access the policy interface",
+        # "subtasks": [
+        #     f"Enter the username using `fgg_user_name` in the appropriate input field.",
+        #     f"Enter the password using `fgg_password` in the password field.",
+        #     "Click the login button to authenticate.",
+        #     "Wait for the portal dashboard or landing page to fully load before proceeding."
+        # ],
+        "initial_actions": [
+            {"go_to_url": {"url": "https://partners.fggeneral.in/nonlifeadvisor"}},
+            {"input_text": {"index": 2, "text": "fgg_user_name"}},
+            {"input_text": {"index": 3, "text": "fgg_password"}},
+            {"click_element_by_index": {"index": 5}}],
+        "extend_system_message": "After filling credentials and clicking on login button, your task is done."
     },
     {
-        "title": "Prepare the dashboard by closing popups and selecting vehicle type",
+        "title": "Select vehicle type",
         "subtasks": [
-            "Check for any pop-up notifications, modals, or alerts after login and close them.",
-            "Scroll or navigate to the section where vehicle type or class needs to be selected.",
+            "Check for any pop-up notifications, modals, or alerts and close them.",
             f"Based on the parameter availability, choose either {record.Vehicle_Class} or {record.Vehicle_Sub_Class}."
-        ]
+        ],
+        "use_vision": True
     },
     {
         "title": "Begin form submission by entering business details",
@@ -30,7 +35,8 @@ atomic_tasks = [
             "Scroll to locate the business details section of the form.",
             f"Set 'Business Type' to the value of {record.Business_Type}.",
             "Set 'Product Type' explicitly to 'Package'.",
-            f"Set 'Policy Start Date' to the value of {tomorrow}."
+            f"Set 'Policy Start Date' to the value of {tomorrow}.Beware, the input is split into three fields"
+            f"First fill the date, then month, then the year.",
         ]
     },
     {
@@ -47,7 +53,8 @@ atomic_tasks = [
         "title": "Enter previous policy details and claim history for risk assessment",
         "subtasks": [
             "Scroll down to the section containing policy history fields.",
-            f"Fill in the 'Policy Expiry Date' with {record.Policy_Expiry_Date}.",
+            f"Fill in the 'Policy Expiry Date' with {record.Policy_Expiry_Date}. Beware, the input is split into three fields"
+            f"First fill the date, then month, then the year.",
             f"Set the 'Claim in Previous Policy' value to {record.Claim_Status}."
         ]
     },
