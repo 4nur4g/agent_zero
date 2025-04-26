@@ -23,7 +23,19 @@ async def chat(websocket: WebSocket, msg):
                 config=config,
         ):
             if metadata["langgraph_node"] in ["query_or_respond", "generate"]:
-                yield f"{message}\n\n"
+                # yield f"{message}\n\n"
+                payload = {
+                    "message": {
+                        "text": message.content,
+                        "image": '',
+                    },
+                    "additional_kwargs": getattr(message, "additional_kwargs", {}),
+                    "response_metadata": getattr(message, "response_metadata", {}),
+                    "id": getattr(message, "id", ""),
+                    "type": getattr(message, "type", "from_ai"),
+                    "timestamp": datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+                }
+                yield f"data: {json.dumps(payload)}\n\n"
 
     return event_generator()
 

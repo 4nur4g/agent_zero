@@ -10,10 +10,17 @@ import { parseBackendData } from "@/utility/jsonDataParser";
 import { useUpdates } from "@/context/UpdatesContext";
 
 interface Message {
-  role: "agent" | "user"
-  content: string
-  timestamp: string
+  role: "agent" | "user"; // Who sent the message
+  type:
+    | "agent_zero_updates"   // System/agent update
+    | "from_agent_zero"      // Message from agent
+    | "to_agent_zero"        // Message to agent
+    | "from_human"           // From human user
+    | "from_ai";             // From AI agent (if different from agent_zero)
+  message: string;           // Actual message content
+  timestamp: string;         // ISO string (recommended for date formatting)
 }
+
 
 export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([])
@@ -43,11 +50,11 @@ export default function ChatInterface() {
 
       // handle zero-updates type
       if (parsed.type === 'agent_zero_updates') {
-        setUpdates(prev => [...prev, parsed.content]);
+        setUpdates(prev => [...prev, parsed.message]);
         return;
       }
 
-      const chunk = parsed.content || '';
+      const chunk = parsed.message.text || '';
 
       // always append the new chunk to our ref buffer, then mirror to state so UI updates
       bufferRef.current += chunk;
@@ -59,8 +66,9 @@ export default function ChatInterface() {
         setMessages(prev => [
           ...prev,
           {
-            role: parsed.role === 'user' ? 'user' : 'agent',
-            content: bufferRef.current,
+            role: "agent",
+            type: parsed.type,
+            message: bufferRef.current,
             timestamp: dayjs().format("YYYY-MM-DD HH:mm:ss"),
           },
         ]);
@@ -92,7 +100,8 @@ export default function ChatInterface() {
 
     const newMsg: Message = {
       role: "user",
-      content: input,
+      message: input,
+      type: messages.length > 0 ? messages[messages.length - 1].type === 'from_agent_zero' ? 'to_agent_zero' : 'from_human' : 'from_human',
       timestamp: dayjs().toISOString(),
     };
 
@@ -125,7 +134,7 @@ export default function ChatInterface() {
                   </span>
                 </div>
                 <div className="p-3 bg-muted/50 rounded-lg">
-                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                  <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
                 </div>
                 <div>
                   <span className="text-sm text-muted-foreground">
