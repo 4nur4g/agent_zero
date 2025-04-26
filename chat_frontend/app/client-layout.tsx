@@ -49,7 +49,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen w-screen bg-background">
-      <div className="w-4/5 flex flex-col border-r">
+      <div className="w-3/5 flex flex-col border-r">
         <header className="px-6 py-4 border-b">
           <h1 className="text-lg font-semibold">Chat with PbPartners Agent</h1>
         </header>
@@ -58,7 +58,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 
       <div
         ref={containerRef}                       // ← container gets the ref
-        className="w-1/5 h-full overflow-y-auto p-4 bg-muted/10 border-l border-border"
+        className="w-2/5 h-full overflow-y-auto p-4 bg-muted/10 border-l border-border"
       >
         <h2 className="font-semibold text-lg text-muted-foreground mb-4">
           Real Time Updates

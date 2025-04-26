@@ -32,8 +32,8 @@ def get_controller(socket: WebSocket = None, queue: asyncio.Queue = None) -> Con
             try:
                 # a) send the prompt (and screenshot) to the front-end
                 await socket.send_json({
-                    "type": "agent_zero_message",
-                    "message": {"question": question, "screenshot": screenshot_b64},
+                    "type": "from_agent_zero",
+                    "message": {"text": question, "screenshot": screenshot_b64},
                 })
                 # b) wait here until the front-end does:
                 #    socket.send(JSON.stringify({ type:"response", text:"<their answer>" }))
