@@ -1,7 +1,6 @@
 from fastapi import WebSocket, WebSocketDisconnect
 import asyncio
 import json
-# from agent_zero.main import start_agent_zero
 from backend_server.langgraph.ai import chat
 
 async def handle_socket(websocket: WebSocket, client_id: str, queue: asyncio.Queue):
@@ -14,7 +13,6 @@ async def handle_socket(websocket: WebSocket, client_id: str, queue: asyncio.Que
     print(f"Client {client_id} connected.")
 
     # TODO: Evoke it conditionally, i.e. when agent_zero is required
-    # asyncio.create_task(start_agent_zero(socket=websocket, queue=queue))
 
     try:
         while True:
@@ -23,6 +21,7 @@ async def handle_socket(websocket: WebSocket, client_id: str, queue: asyncio.Que
 
             data = json.loads(message)
             text = data.get("message", "")
+            asyncio.create_task(websocket.app.state.response_queues[client_id].put(text))
             event_generator = await chat(websocket, text)
 
             # Iterating through the event_generator and sending each chunk over WebSocket
@@ -31,7 +30,6 @@ async def handle_socket(websocket: WebSocket, client_id: str, queue: asyncio.Que
                 await asyncio.sleep(0.05)  # simulate delay for streaming
 
             # TODO: To send response of user to agent_zero
-            # asyncio.create_task(websocket.app.state.response_queues[client_id].put("Hello Robot, I am doing well"))
     
     except WebSocketDisconnect:
         print(f"Client {client_id} disconnected.")

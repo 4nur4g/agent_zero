@@ -9,6 +9,8 @@ from langgraph.graph import StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode
 from pydantic import BaseModel
 from fastapi import WebSocket
+from agent_zero.main import start_agent_zero
+import asyncio
 
 from backend_server.handlers.graph import is_last_message_with_retrieval
 
@@ -27,6 +29,24 @@ async def get_graph(llm, embedding_model, db, collection_name, websocket: WebSoc
             for doc in retrieved_docs
         )
         return serialized, retrieved_docs
+
+    fetch_quote_tool_description =  """Triggers the browser-use tool when the user requests a quote.
+            If the user does not provide a quote ID, prompt them to supply it.
+            This tool does not return any data; it simply initiates the process.
+            You can safely inform the user that their request has been received
+            and advise them to wait for a short time.
+        """
+
+    @tool(description=fetch_quote_tool_description)
+    async def fetch_quotes(quote_request_id: str) -> str:
+        """
+             If the user does not provide a quote ID, prompt them to supply it.
+            This tool does not return any data; it simply initiates the process.
+            You can safely inform the user that their request has been received
+            and advise them to wait for a short time.
+        """
+        asyncio.create_task(start_agent_zero(socket=websocket, queue=websocket.app.state.response_queues))
+        return "Received quote request successfully"
 
     class State(MessagesState):
         summary: str
@@ -86,10 +106,11 @@ async def get_graph(llm, embedding_model, db, collection_name, websocket: WebSoc
     # Step 1: Generate an AIMessage that may include a tool-call to be sent.
     async def query_or_respond(state: State):
         """Generate tool call for retrieval or respond."""
-        llm_with_tools = llm.bind_tools([retrieve])
+        llm_with_tools = llm.bind_tools([fetch_quotes])
         system_message_content = (
             "You're Mayur, a PB Partners employee"
             "You are an Insurance Policy expert"
+            "You also help in retrieving quotes using fetch_quotes tool"
         )
         if is_last_message_with_retrieval(state):
             system_message_content += " If you're not sure, just say 'I don't know'"
@@ -111,7 +132,7 @@ async def get_graph(llm, embedding_model, db, collection_name, websocket: WebSoc
         return END
 
     # Step 2: Execute the retrieval.
-    tools = ToolNode([retrieve])
+    tools = ToolNode([fetch_quotes])
 
     graph_builder = StateGraph(State)
     graph_builder.add_node(entry_node)

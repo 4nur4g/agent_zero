@@ -25,7 +25,7 @@ browser = Browser(
             keep_alive=True,
             disable_security=False,
         ),
-        # browser_binary_path="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        browser_binary_path="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     )
 )
 
