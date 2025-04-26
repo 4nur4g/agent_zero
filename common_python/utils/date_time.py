@@ -2,8 +2,6 @@ from datetime import date, datetime
 
 import pendulum
 
-import pendulum
-
 
 def extract_date_parts(date_input, fmt: str = "YYYY-MM-DD") -> dict:
     """

@@ -5,10 +5,27 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "agent-zero",
+    "chromadb>=0.6.3",
     "fastapi[standard]>=0.115.12",
+    "langchain>=0.3.22",
+    "langchain-chroma>=0.2.2",
+    "langchain-core>=0.3.49",
+    "langchain-ollama>=0.3.0",
+    "langchain-openai>=0.3.11",
+    "langgraph>=0.3.34",
+    "langgraph-checkpoint-postgres>=2.0.21",
+    "psycopg>=3.2.6",
+    "psycopg-binary>=3.2.6",
+    "psycopg-pool>=3.2.6",
+    "pydantic-settings>=2.9.1",
+    "pyobjtojson>=0.3",
     "pyodbc>=5.2.0",
     "python-tds>=1.16.1",
     "sqlalchemy-pytds>=1.0.2",
     "sqlmodel>=0.0.24",
     "uvicorn>=0.34.2",
 ]
+
+[tool.uv.sources]
+agent-zero = { workspace = true }

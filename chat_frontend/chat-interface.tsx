@@ -5,161 +5,174 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
+import dayjs from "dayjs"
+import { parseBackendData } from "@/utility/jsonDataParser";
+import { useUpdates } from "@/context/UpdatesContext";
+import { UpdateEmitter } from "@/utility/UpdateEmitter";
 
 interface Message {
-  role: "agent" | "user"
-  content: string
-  timestamp: string
+  role: "agent" | "user"; // Who sent the message
+  type:
+    | "agent_zero_updates"   // System/agent update
+    | "from_agent_zero"      // Message from agent
+    | "to_agent_zero"        // Message to agent
+    | "from_human"           // From human user
+    | "from_ai";             // From AI agent (if different from agent_zero)
+  message: string;           // Actual message content
+  timestamp: string;         // ISO string (recommended for date formatting)
 }
 
-export default function ChatInterface() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "agent",
-      content: "Hello, I am a generative AI agent. How may I assist you today?",
-      timestamp: "4:08:28 PM",
-    },
-    {
-      role: "user",
-      content: "Hi, I'd like to check my bill.",
-      timestamp: "4:08:37 PM",
-    },
-    {
-      role: "agent",
-      content:
-        "Please hold for a second.\n\nOk, I can help you with that\n\nI'm pulling up your current bill information\n\nYour current bill is $150, and it is due on August 31, 2024.\n\nIf you need more details, feel free to ask!",
-      timestamp: "4:08:37 PM",
-    },
-  ])
 
+export default function ChatInterface() {
+  const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('');
-  
+  const [streamedContent, setStreamedContent] = useState('');
   const socketRef = useRef<WebSocket | null>(null);
-  const messagesEndRef = useRef(null);
+  const bufferRef = useRef<string>('');              // <-- buffer for accumulating chunks
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   // Connect to WebSocket server
   useEffect(() => {
-    // Create WebSocket connection
     socketRef.current = new WebSocket('ws://localhost:3006/ws/1');
-    
-    // Connection opened
-    socketRef.current.addEventListener('open', (event: any) => {
-      // setConnected(true);
-      // setStatus('Connected');
+
+    socketRef.current.addEventListener('open', () => {
       console.log('Connected to WebSocket server');
     });
 
-    // Listen for messages
-    socketRef.current.addEventListener('message', (event: any) => {
+    socketRef.current.addEventListener('message', (event: MessageEvent) => {
+      let parsed;
       try {
-        console.log('Message received:', event.data);
-        const data = JSON.parse(event.data);
-        setMessages(prevMessages => [
-        ...prevMessages,
-        {
-          role: "agent",
-          content: data.message,
-          timestamp: new Date().toISOString(),
-        }
-      ]);
-      } catch (error) {
-        console.error('Error parsing message:', error);
+        parsed = parseBackendData(event.data);
+        console.log("Parsed: 📷", parsed)
+      } catch {
+        console.error("Invalid JSON stream message:", event.data);
+        return;
+      }
+
+      // handle zero-updates type
+      if (parsed.type === 'agent_zero_updates') {
+        UpdateEmitter.emit('new-update', parsed.message);
+        return;
+      }
+
+      const chunk = parsed.message.text || '';
+
+      // always append the new chunk to our ref buffer, then mirror to state so UI updates
+      bufferRef.current += chunk;
+      setStreamedContent(bufferRef.current);
+
+      // if this is the last chunk, flush into messages and reset
+      const finish = parsed.response_metadata?.finish_reason === "stop";
+      if (finish) {
+        setMessages(prev => [
+          ...prev,
+          {
+            role: "agent",
+            type: parsed.type,
+            message: bufferRef.current,
+            timestamp: dayjs().format("YYYY-MM-DD HH:mm:ss"),
+          },
+        ]);
+        bufferRef.current = '';
+        setStreamedContent('');
       }
     });
 
-    // Connection closed
-    socketRef.current.addEventListener('close', (event) => {
-      // setConnected(false);
-      // setStatus('Disconnected');
+    socketRef.current.addEventListener('close', () => {
       console.log('Disconnected from WebSocket server');
     });
 
-    // Connection error
     socketRef.current.addEventListener('error', () => {
-      // setConnected(false);
-      // setStatus('Connection Error');
       console.log('WebSocket connection error - server might not be running');
     });
 
-    // Clean up on unmount
     return () => {
-      if (socketRef.current) {
-        socketRef.current.close();
-      }
+      socketRef.current?.close();
     };
   }, []);
 
-  // // Auto-scroll to bottom when messages change
-  // useEffect(() => {
-  //   messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  // }, [messages]);
+  // Auto-scroll
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, streamedContent]);
 
-  // Send a message
   const sendMessage = () => {
     if (!input.trim()) return;
-    
-    const newMessage = {
+
+    const newMsg: Message = {
       role: "user",
-      content: input,
-      timestamp: new Date().toISOString(),
+      message: input,
+      type: messages.length > 0 ? messages[messages.length - 1].type === 'from_agent_zero' ? 'to_agent_zero' : 'from_human' : 'from_human',
+      timestamp: dayjs().toISOString(),
     };
-    
-    // Add message to state
-    setMessages(prevMessages => [...prevMessages, newMessage]);
-    
-    // Send to server
-    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-      socketRef.current.send(JSON.stringify({ message: input }));
-    }
-    
-    // Clear input
+
+    setMessages(prev => [...prev, newMsg]);
+    socketRef.current?.send(JSON.stringify({ message: input }));
     setInput('');
   };
 
-  // Handle key press
-  const handleKeyPress = (e: any) => {
-    if (e.key === 'Enter') {
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
       sendMessage();
     }
   };
 
   return (
-    <div className="flex-1 flex flex-col">
-      <ScrollArea className="flex-1">
+    <div className="h-full flex flex-col overflow-hidden">
+      <ScrollArea className="flex-1 overflow-y-auto p-4">
         <div className="space-y-4">
-          {messages.map((message, index) => (
-            <div key={index} className={cn("flex gap-2 max-w-[80%]", message.role === "user" && "ml-auto")}>
-              {message.role === "agent" && <div className="h-8 w-8 rounded-full bg-primary flex-shrink-0" />}
-              <div className="space-y-2">
+          {messages.map((msg, i) => (
+            <div
+              key={i}
+              className={cn("flex gap-2", msg.role === "user" ? "justify-end" : "justify-start")}
+            >
+              {msg.role === "agent" && <div className="h-8 w-8 rounded-full bg-primary flex-shrink-0" />}
+              <div className="space-y-2 max-w-[80%] break-words">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">{message.role === "agent" ? "GenerativeAgent" : "G5"}</span>
-                  <span className="text-sm text-muted-foreground">{message.timestamp}</span>
+                  <span className="text-sm font-medium">
+                    {msg.role === "agent" ? "Generative Agent" : "You"}
+                  </span>
                 </div>
                 <div className="p-3 bg-muted/50 rounded-lg">
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                </div>
+                <div>
+                  <span className="text-sm text-muted-foreground">
+                    {dayjs(msg.timestamp).format('YYYY-MM-DD HH:mm:ss')}
+                  </span>
                 </div>
               </div>
             </div>
           ))}
+
+          {streamedContent && (
+            <div className="flex gap-2 justify-start">
+              <div className="h-8 w-8 rounded-full bg-primary flex-shrink-0" />
+              <div className="space-y-2 max-w-[80%] break-words">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Generative Agent</span>
+                </div>
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm whitespace-pre-wrap">{streamedContent}</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
+        <div ref={messagesEndRef} />
       </ScrollArea>
+
       <div className="p-4 border-t">
         <div className="flex gap-2">
-          <div className="flex-1 flex items-center relative">
-            <Textarea
-              placeholder="Type a message as a customer"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              className="min-h-[44px] max-h-32 pl-10"
-              onKeyDown={(e) => {
-                // e.preventDefault();
-                if(e.key === 'Enter') {
-                  sendMessage();
-                }
-              }}
-            />
-          </div>
-          <Button className="px-8" onClick={sendMessage} >Send</Button>
+          <Textarea
+            placeholder="Type a message as a customer"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={handleKeyPress}
+            className="flex-1 min-h-[44px] max-h-32"
+          />
+          <Button onClick={sendMessage} className="px-8">Send</Button>
         </div>
       </div>
     </div>
