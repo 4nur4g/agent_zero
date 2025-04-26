@@ -42,6 +42,7 @@ async def start_agent_zero(socket: WebSocket = None, queue: asyncio.Queue = None
             browser_context=context,
             save_path="logs/conversation",
             controller=controller,
+            socket=socket,
         )
 
         manager = TaskManager(factory)
