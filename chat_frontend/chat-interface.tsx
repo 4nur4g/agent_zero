@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 import dayjs from "dayjs"
 import { parseBackendData } from "@/utility/jsonDataParser";
 import { useUpdates } from "@/context/UpdatesContext";
+import { UpdateEmitter } from "@/utility/UpdateEmitter";
 
 interface Message {
   role: "agent" | "user"; // Who sent the message
@@ -24,7 +25,6 @@ interface Message {
 
 export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([])
-  const { setUpdates } = useUpdates();
   const [input, setInput] = useState('');
   const [streamedContent, setStreamedContent] = useState('');
   const socketRef = useRef<WebSocket | null>(null);
@@ -51,8 +51,7 @@ export default function ChatInterface() {
 
       // handle zero-updates type
       if (parsed.type === 'agent_zero_updates') {
-        console.log("Inside where required")
-        setUpdates(prev => [...prev, parsed.message]);
+        UpdateEmitter.emit('new-update', parsed.message);
         return;
       }
 

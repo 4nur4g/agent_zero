@@ -110,8 +110,10 @@ dependencies = [
     { name = "langgraph" },
     { name = "langgraph-checkpoint-postgres" },
     { name = "psycopg" },
+    { name = "psycopg-binary" },
     { name = "psycopg-pool" },
     { name = "pydantic-settings" },
+    { name = "pyobjtojson" },
     { name = "pyodbc" },
     { name = "python-tds" },
     { name = "sqlalchemy-pytds" },
@@ -132,8 +134,10 @@ requires-dist = [
     { name = "langgraph", specifier = ">=0.3.34" },
     { name = "langgraph-checkpoint-postgres", specifier = ">=2.0.21" },
     { name = "psycopg", specifier = ">=3.2.6" },
+    { name = "psycopg-binary", specifier = ">=3.2.6" },
     { name = "psycopg-pool", specifier = ">=3.2.6" },
     { name = "pydantic-settings", specifier = ">=2.9.1" },
+    { name = "pyobjtojson", specifier = ">=0.3" },
     { name = "pyodbc", specifier = ">=5.2.0" },
     { name = "python-tds", specifier = ">=1.16.1" },
     { name = "sqlalchemy-pytds", specifier = ">=1.0.2" },
@@ -4748,6 +4752,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/3e/61/934f03510e7f49454fbf6eeff8ad2eca5d8bfbe71aa4b8a034f8132af2fa/pyobjc_framework_WebKit-11.0-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:2e4911519e94822011d99fdb9addf4a176f45a79808dab18dc303293f4590f7c", size = 44901, upload_time = "2025-01-14T19:01:45.476Z" },
     { url = "https://files.pythonhosted.org/packages/dc/8b/e880680429fbac494687626c1338758e70b5dfb75883d9cb78f66635f381/pyobjc_framework_WebKit-11.0-cp313-cp313-macosx_10_13_universal2.whl", hash = "sha256:22d09bb22c3c48d9243f300f8264a68ecc0bdfe09d25794ee86ab2239eae7da2", size = 44938, upload_time = "2025-01-14T19:01:46.526Z" },
     { url = "https://files.pythonhosted.org/packages/ec/8f/f0ba035f682038264b1e05bde8fb538e8fa61267dc3ac22e3c2e3d3001bc/pyobjc_framework_WebKit-11.0-cp313-cp313t-macosx_10_13_universal2.whl", hash = "sha256:6141a416f1eb33ded2c6685931d1b4d5f17c83814f2d17b7e2febff03c6f6bee", size = 45443, upload_time = "2025-01-14T19:01:47.508Z" },
+]
+
+[[package]]
+name = "pyobjtojson"
+version = "0.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/11/1a/803f5055c5bfe6b5ad97ca88855bcb0e11bd20a7d7226cde49c8b0575e6e/pyobjtojson-0.3.tar.gz", hash = "sha256:abf3bf6a8161b54cbdc2bb3cccb9168b5ef5af3a81acb76bc57ee7379a101d3b", size = 4577, upload_time = "2025-02-26T20:18:30.077Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/17/73/eb806f9df2267017109078307ba5fea090a351185970a99795f8320d06f3/pyobjtojson-0.3-py3-none-any.whl", hash = "sha256:659ad65cb320aa8650da7be7c4abbb72b76a358136d9fd569b2379098948b065", size = 4850, upload_time = "2025-02-26T20:18:29.075Z" },
 ]
 
 [[package]]

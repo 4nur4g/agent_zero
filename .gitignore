@@ -10,6 +10,7 @@ logs
 # Virtual environments
 .venv
 backend_server/.env
+agent_zero/.env
 screenshots
 .DS_Store
 uv.lock
