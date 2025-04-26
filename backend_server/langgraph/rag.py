@@ -48,6 +48,7 @@ async def get_graph(llm, embedding_model, db, collection_name, websocket: WebSoc
         if summary:
             summary_message = (
                 f"This is summary of the conversation to date: {summary}\n\n"
+                "Always respond with a single, complete JSON object and nothing else."
                 "Extend the summary by taking into account the new messages above:"
             )
         else:
