@@ -19,6 +19,7 @@ interface Message {
     | "from_human"           // From human user
     | "from_ai";             // From AI agent (if different from agent_zero)
   message: string;           // Actual message content
+  base64Image?: string;        // base 64 image string
   timestamp: string;         // ISO string (recommended for date formatting)
 }
 
@@ -29,6 +30,7 @@ export default function ChatInterface() {
   const [streamedContent, setStreamedContent] = useState('');
   const socketRef = useRef<WebSocket | null>(null);
   const bufferRef = useRef<string>('');              // <-- buffer for accumulating chunks
+  const base64BufferRef = useRef<string>('');
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   // Connect to WebSocket server
@@ -56,6 +58,11 @@ export default function ChatInterface() {
       }
 
       const chunk = parsed.message.text || '';
+      const base64Image = parsed.message.screenshot || '';
+
+      if (base64Image) {
+        base64BufferRef.current = base64Image;
+      }
 
       // always append the new chunk to our ref buffer, then mirror to state so UI updates
       bufferRef.current += chunk;
@@ -70,10 +77,12 @@ export default function ChatInterface() {
             role: "agent",
             type: parsed.type,
             message: bufferRef.current,
+            base64Image: base64BufferRef.current || undefined,
             timestamp: dayjs().format("YYYY-MM-DD HH:mm:ss"),
           },
         ]);
         bufferRef.current = '';
+        base64BufferRef.current = '';
         setStreamedContent('');
       }
     });
@@ -134,8 +143,17 @@ export default function ChatInterface() {
                     {msg.role === "agent" ? "Generative Agent" : "You"}
                   </span>
                 </div>
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+                  {msg.message && (
+                    <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                  )}
+                  {msg.base64Image && (
+                    <img
+                      src={`data:image/png;base64,${msg.base64Image}`}
+                      alt="Screenshot"
+                      className="rounded-lg max-w-full h-auto"
+                    />
+                  )}
                 </div>
                 <div>
                   <span className="text-sm text-muted-foreground">

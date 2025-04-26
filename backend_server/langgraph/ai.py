@@ -23,7 +23,6 @@ async def chat(websocket: WebSocket, msg):
                 config=config,
         ):
             if metadata["langgraph_node"] in ["query_or_respond", "generate"]:
-                # yield f"{message}\n\n"
                 payload = {
                     "message": {
                         "text": message.content,

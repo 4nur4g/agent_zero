@@ -10,8 +10,6 @@ from langgraph.prebuilt import ToolNode
 from pydantic import BaseModel
 from fastapi import WebSocket
 
-# from langgraph.checkpoint.memory import MemorySaver
-
 from backend_server.handlers.graph import is_last_message_with_retrieval
 
 async def get_graph(llm, embedding_model, db, collection_name, websocket: WebSocket):
