@@ -18,7 +18,7 @@ interface Message {
     | "to_agent_zero"        // Message to agent
     | "from_human"           // From human user
     | "from_ai";             // From AI agent (if different from agent_zero)
-  message: string;           // Actual message content
+  message?: string;           // Actual message content
   base64Image?: string;        // base 64 image string
   timestamp: string;         // ISO string (recommended for date formatting)
 }
@@ -30,7 +30,6 @@ export default function ChatInterface() {
   const [streamedContent, setStreamedContent] = useState('');
   const socketRef = useRef<WebSocket | null>(null);
   const bufferRef = useRef<string>('');              // <-- buffer for accumulating chunks
-  const base64BufferRef = useRef<string>('');
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   // Connect to WebSocket server
@@ -57,13 +56,39 @@ export default function ChatInterface() {
         return;
       }
 
-      const chunk = parsed.message.text || '';
-      const base64Image = parsed.message.screenshot || '';
+      if (parsed.type === 'from_agent_zero') {
+        const messageContent = parsed.message.text || '';
+        const base64Image = parsed.message.screenshot || undefined;
+        if (messageContent) {
+          setMessages(prev => [
+            ...prev,
+            {
+              role: "agent",
+              type: parsed.type,
+              message: messageContent,
+              base64Image: undefined,
+              timestamp: dayjs().format("YYYY-MM-DD HH:mm:ss"),
+            },
+          ]);
+        }
 
-      if (base64Image) {
-        base64BufferRef.current = base64Image;
+        if (base64Image) {
+          setMessages(prev => [
+            ...prev,
+            {
+              role: "agent",
+              type: parsed.type,
+              message: undefined,
+              base64Image: `data:image/png;base64, ${base64Image}`,
+              timestamp: dayjs().format("YYYY-MM-DD HH:mm:ss"),
+            },
+          ]);
+        }
+
+        return;
       }
 
+      const chunk = parsed.message.text || '';
       // always append the new chunk to our ref buffer, then mirror to state so UI updates
       bufferRef.current += chunk;
       setStreamedContent(bufferRef.current);
@@ -77,12 +102,11 @@ export default function ChatInterface() {
             role: "agent",
             type: parsed.type,
             message: bufferRef.current,
-            base64Image: base64BufferRef.current || undefined,
+            base64Image: undefined,
             timestamp: dayjs().format("YYYY-MM-DD HH:mm:ss"),
           },
         ]);
         bufferRef.current = '';
-        base64BufferRef.current = '';
         setStreamedContent('');
       }
     });
@@ -148,11 +172,7 @@ export default function ChatInterface() {
                     <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
                   )}
                   {msg.base64Image && (
-                    <img
-                      src={`data:image/png;base64,${msg.base64Image}`}
-                      alt="Screenshot"
-                      className="rounded-lg max-w-full h-auto"
-                    />
+                    <img src={msg.base64Image} alt="Base64 Rendered" style={{ maxWidth: '100%', height: 'auto' }} />
                   )}
                 </div>
                 <div>
