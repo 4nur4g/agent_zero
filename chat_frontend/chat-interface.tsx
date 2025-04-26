@@ -43,6 +43,7 @@ export default function ChatInterface() {
       let parsed;
       try {
         parsed = parseBackendData(event.data);
+        console.log("Parsed: 📷", parsed)
       } catch {
         console.error("Invalid JSON stream message:", event.data);
         return;
@@ -50,6 +51,7 @@ export default function ChatInterface() {
 
       // handle zero-updates type
       if (parsed.type === 'agent_zero_updates') {
+        console.log("Inside where required")
         setUpdates(prev => [...prev, parsed.message]);
         return;
       }
