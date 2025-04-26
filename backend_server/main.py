@@ -5,6 +5,7 @@ from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict
 from backend_server.handlers.websocket_handler import handle_socket
+from backend_server.handlers.connections import connect_chroma_db, connect_pg
 
 # Store active WebSocket connections
 
@@ -13,12 +14,14 @@ active_connections: Dict[str, WebSocket] = {}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-
+    app.state.chroma_client = connect_chroma_db(app)
     app.state.connections = {} 
     app.state.active_connections = {}
     app.state.response_queues = {}
-
+    pg_async_connection_pool = await connect_pg(app)
+    app.state.pool = pg_async_connection_pool
     yield
+    pg_async_connection_pool.close()
 
 
 app = FastAPI(lifespan=lifespan)

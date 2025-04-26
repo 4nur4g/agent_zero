@@ -14,24 +14,7 @@ interface Message {
 }
 
 export default function ChatInterface() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "agent",
-      content: "Hello, I am a generative AI agent. How may I assist you today?",
-      timestamp: "4:08:28 PM",
-    },
-    {
-      role: "user",
-      content: "Hi, I'd like to check my bill.",
-      timestamp: "4:08:37 PM",
-    },
-    {
-      role: "agent",
-      content:
-        "Please hold for a second.\n\nOk, I can help you with that\n\nI'm pulling up your current bill information\n\nYour current bill is $150, and it is due on August 31, 2024.\n\nIf you need more details, feel free to ask!",
-      timestamp: "4:08:37 PM",
-    },
-  ])
+  const [messages, setMessages] = useState<Message[]>([])
 
   const [input, setInput] = useState('');
   const [streamedContent, setStreamedContent] = useState('');
@@ -52,23 +35,22 @@ export default function ChatInterface() {
     // Listen for messages
     socketRef.current.addEventListener('message', (event: any) => {
       try {
-        const json = JSON.parse(event.data);
-      
-        if (json.isStreaming) {
-          // Token-by-token streaming update
-          setStreamedContent(prev => prev + json.content);
-        } else {
-          // Stream end, finalize the message
-          console.log(' stream content end --> ', json)
+        const data = JSON.parse(event.data);
+        if (data?.response_metadata && data?.response_metadata?.['finish_reason'] === 'stop') {
+           // Stream end, finalize the message
+          console.log(' stream content end --> ', data)
           setMessages(prev => [
             ...prev,
             {
-              role: json.role,
-              content: json.content,
-              timestamp: json.timestamp || dayjs().format('YYYY-MM-DD HH:mm:ss')
+              role: data.role,
+              content: data['content'],
+              timestamp: data.timestamp || dayjs().format('YYYY-MM-DD HH:mm:ss')
             }
           ]);
           setStreamedContent(""); // Reset for next stream
+        } else {
+          // Token-by-token streaming update
+          setStreamedContent(prev => prev + data['content']);
         }
       } catch (error) {
         console.error("Invalid JSON stream message:", event.data);
