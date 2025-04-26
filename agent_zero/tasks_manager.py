@@ -162,7 +162,7 @@ class AgentFactory:
             "message_context": message_ctx,
             "controller": self.controller,
             "use_vision": self.use_vision,
-            "planner_llm": self.planner_llm if self.planner_llm else self.llm,  # Separate model for planning
+            # "planner_llm": self.planner_llm if self.planner_llm else self.llm,  # Separate model for planning
             "use_vision_for_planner": True,
             "planner_interval": 4,
         }

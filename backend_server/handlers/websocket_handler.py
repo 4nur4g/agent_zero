@@ -22,7 +22,7 @@ async def handle_socket(websocket: WebSocket, client_id: str, queue: asyncio.Que
             data = json.loads(message)
             text = data.get("message", "")
             asyncio.create_task(websocket.app.state.response_queues[client_id].put(text))
-            event_generator = await chat(websocket, text)
+            event_generator = await chat(websocket, text, client_id)
 
             # Iterating through the event_generator and sending each chunk over WebSocket
             async for chunk in event_generator:

@@ -153,4 +153,14 @@ atomic_tasks_2 = [
     }
 ]
 
-tasks = atomic_tasks_2
+ask_question = [
+    {
+        "title": "Ask user about his/her whereabouts after visiting youtube.com",
+        "subtasks": [
+            "Visit youtube.com and then"
+            "Ask user how is he/she."
+        ]
+    }
+]
+
+tasks = ask_question

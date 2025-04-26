@@ -14,7 +14,7 @@ import asyncio
 
 from backend_server.handlers.graph import is_last_message_with_retrieval
 
-async def get_graph(llm, embedding_model, db, collection_name, websocket: WebSocket):
+async def get_graph(llm, embedding_model, db, collection_name, websocket: WebSocket, client_id):
     @tool(response_format="content_and_artifact")
     async def retrieve(query: str):
         """Retrieve information related to policy related query."""
@@ -45,7 +45,7 @@ async def get_graph(llm, embedding_model, db, collection_name, websocket: WebSoc
             You can safely inform the user that their request has been received
             and advise them to wait for a short time.
         """
-        asyncio.create_task(start_agent_zero(socket=websocket, queue=websocket.app.state.response_queues))
+        asyncio.create_task(start_agent_zero(socket=websocket, queue=websocket.app.state.response_queues[client_id]))
         return "Received quote request successfully"
 
     class State(MessagesState):

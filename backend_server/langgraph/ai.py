@@ -8,12 +8,12 @@ import json
 collection_name = "knowledge_base_v10"
 thread_id = str(45)
 
-async def chat(websocket: WebSocket, msg):
+async def chat(websocket: WebSocket, msg, client_id):
     """
     Accepts a message in the request body and returns a response from the LLM.
     """
     graph: CompiledStateGraph = await get_graph(get_llm(), get_embedding_model(), websocket.app.state.chroma_client,
-                                                collection_name, websocket)
+                                                collection_name, websocket, client_id)
     config = {"configurable": {"thread_id": thread_id}}
 
     async def event_generator():
