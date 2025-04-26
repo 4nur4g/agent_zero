@@ -140,7 +140,7 @@ export default function ChatInterface() {
     };
 
     setMessages(prev => [...prev, newMsg]);
-    socketRef.current?.send(JSON.stringify({ message: input }));
+    socketRef.current?.send(JSON.stringify({ requestBody: newMsg }));
     setInput('');
   };
 
