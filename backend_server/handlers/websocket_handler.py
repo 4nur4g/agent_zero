@@ -17,17 +17,19 @@ async def handle_socket(websocket: WebSocket, client_id: str, queue: asyncio.Que
     try:
         while True:
             # Wait for a message from the client
-            message = await websocket.receive_text()
+            body = await websocket.receive_text()
+            data = json.loads(body)
+            text = data['requestBody']['message']
+            msg_type = data['requestBody']['type']
 
-            data = json.loads(message)
-            text = data.get("message", "")
-            asyncio.create_task(websocket.app.state.response_queues[client_id].put(text))
-            event_generator = await chat(websocket, text, client_id)
-
-            # Iterating through the event_generator and sending each chunk over WebSocket
-            async for chunk in event_generator:
-                await websocket.send_text(chunk)
-                await asyncio.sleep(0.05)  # simulate delay for streaming
+            if(msg_type == 'to_agent_zero'):
+                asyncio.create_task(websocket.app.state.response_queues[client_id].put(text))
+            else:
+                event_generator = await chat(websocket, text, client_id)
+                # Iterating through the event_generator and sending each chunk over WebSocket
+                async for chunk in event_generator:
+                    await websocket.send_text(chunk)
+                    await asyncio.sleep(0.05)  # simulate delay for streaming
 
             # TODO: To send response of user to agent_zero
     
