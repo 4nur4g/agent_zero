@@ -109,6 +109,8 @@ class InsuranceQuoteRequest:
     Pincode: Optional[int]
     PDF_byte: Optional[str]
     InsurerId: Optional[int]
+    Policy_Start_Date: Optional[str]
+    
 
 from datetime import datetime
 
@@ -217,5 +219,6 @@ record = InsuranceQuoteRequest(
     RTO_city=None,
     Pincode=201010,
     PDF_byte="",
-    InsurerId=11
+    InsurerId=11,
+    Policy_Start_Date="2025-04-27"
 )
