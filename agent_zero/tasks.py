@@ -163,4 +163,17 @@ ask_question = [
     }
 ]
 
+youtube_screenshot_task = [
+    {
+        "title": "Open YouTube and Take Screenshot",
+        "subtasks": [
+            "Navigate to https://youtube.com",
+            "Wait for the page to fully load",
+            "Take a screenshot of the entire page",
+            "Save the screenshot in the 'logs/screenshots' directory"
+        ],
+        "use_vision": True
+    }
+]
+
 tasks = atomic_tasks_2

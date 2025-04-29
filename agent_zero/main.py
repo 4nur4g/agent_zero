@@ -43,6 +43,8 @@ async def start_agent_zero(socket: WebSocket = None, queue: asyncio.Queue = None
             save_path="logs/conversation",
             controller=controller,
             socket=socket,
+            # Add Playwright script generation path
+            save_playwright_script_path="playwright_scripts"
         )
 
         manager = TaskManager(factory)
